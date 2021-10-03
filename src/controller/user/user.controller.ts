@@ -1,12 +1,12 @@
-import { UserModel, Credential } from "../../application/domain";
-import { Repository } from "../../repository";
-import { RegisterUserUseCase } from "../../application/use-cases/register-user/register-user.use-case";
+import { UserInputModel, Credential } from "../../application/domain";
+import { RepositoryMongoDB } from "../../repository";
+import { RegisterUserUseCase } from "../../application/services/auth/register";
 import { Token } from "../../token";
-import { AuthenticateUserUseCase } from "../../application/use-cases/register-user/authenticate-user.use-case";
+import { AuthenticateUserUseCase } from "../../application/services/auth/login";
 
 export class UserController {
-    async registerUser(user: UserModel): Promise<string> {
-        const repo = Repository.getInstance();
+    async registerUser(user: UserInputModel): Promise<string> {
+        const repo = RepositoryMongoDB.getInstance();
         const tokenGenerator = new Token();
         const useCase = new RegisterUserUseCase(repo, tokenGenerator);
         const data = useCase.execute(user);
@@ -14,7 +14,7 @@ export class UserController {
     }
 
     async authenticateUser(details: Credential): Promise<string> {
-        const repo = Repository.getInstance();
+        const repo = RepositoryMongoDB.getInstance();
         const tokenGenerator = new Token();
         const useCase = new AuthenticateUserUseCase(repo, tokenGenerator);
         const data = useCase.execute(details);

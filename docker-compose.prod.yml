@@ -1,0 +1,5 @@
+version: '1'
+
+services:
+  app:
+    command: npm run start

@@ -1,20 +1,61 @@
-import { ExpressServer } from './server';
-import * as express from 'express';
+import { ExpressServer} from './server/express.server';
+import mongoose from 'mongoose';
+import { MongooseConnection,MongooseConnectionStatus} from 'connections/mongoose';
 
-const config = {
-  port: 3000,
-  Mongo_Uri: 'mongodb://localhost:27017/sprint-retrospective'
+export type AppConnections= {
+  connections: Array<MongooseConnection>;
+  errors: Array<MongooseConnection>;
 };
 
-const expressInstance = express();
-const app = new ExpressServer(expressInstance, config.port);
+export type AppStatus= {
+  status: string;
+  running: boolean;
+};
 
-const db = app.connectDB(config.Mongo_Uri);
+export default class App {
+    private express_Server: ExpressServer;
+    private port: string|number;
+    private mongo_db: MongooseConnectionStatus;
+    private mongo_db2: MongooseConnectionStatus;
 
-db.connection.on('error', () => console.log('Cannot connect to MongoDB'));
+    constructor(port: number) {
+      this.express_Server=new ExpressServer();
+      this.port=port;
+      this.mongo_db={
+        status: false,
+        mongoose: null
+      };
+      this.mongo_db2={
+        status: false,
+        mongoose: null
+      };
+    }
 
-app.httpServer.on('error', () => console.log('Server Error'));
-app.httpServer.on('listening', () => console.log('Server Started'));
+    public async connectDataBases(mongoConnection: MongooseConnection,mongoConnection2: MongooseConnection):Promise<AppConnections>{
+      let connections: Array<MongooseConnection>;
+      let connectionErrors: Array<MongooseConnection>;
+      connections=[];
+      connectionErrors=[];
 
-module.exports.app = app;
+      this.mongo_db=await mongoConnection.connectMongoDB();
+      (this.mongo_db.status) ? connections.push(mongoConnection) : connectionErrors.push(mongoConnection);
+      mongoose.connection.close();
 
+      this.mongo_db2=await mongoConnection2.connectMongoDB();
+      (this.mongo_db2.status) ? connections.push(mongoConnection2) : connectionErrors.push(mongoConnection2);
+      return {
+        connections: connections,
+        errors: connectionErrors
+      };
+    }
+
+    public start():string{
+      try{
+        this.express_Server.listen(this.port);
+        return "Server Listening On Port "+this.port;
+      }catch(error){
+        return  "Could Not Start Server on port "+this.port;
+      }
+    }
+
+}

@@ -1,10 +1,8 @@
-import { UserTypes } from "./user-types";
-
-export interface UserInputModel {
+export interface UserBaseModel {
     _id?: string|null;
     email: string;
     password: string;
-    userType: UserTypes;
+    userType: string;
     firstName?: string;
     lastName?: string;
 }

@@ -1,32 +1,24 @@
 import * as bodyParser from 'body-parser';
+import express from 'express';
 import { Express } from 'express';
-import { Server } from 'http';
-import * as mongoose from 'mongoose';
-
 import { Routes } from './routes';
 
 export class ExpressServer {
-    public httpServer: Server;
+    public server: Express;
 
-    constructor(server: Express, port: number) {
-      this.setupStandardMiddleware(server);
-      new Routes(server);
-      this.httpServer = this.startListen(server, port);
+    constructor() {
+      this.server=express();
+      this.setupStandardMiddleware();
+      new Routes(this.server);
     }
 
-    public startListen(server: Express, port: number): Server {
-      return server.listen(port);
+    public listen(port: string|number){
+      return this.server.listen(port)
     }
 
-    public connectDB(uri: string) {
-      mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
-      return mongoose;
-    }
-
-    private setupStandardMiddleware(server: Express) {
-        server.use(bodyParser.json());
-
-        server.use((req, res, next) => {
+    private setupStandardMiddleware() {
+        this.server.use(bodyParser.json());
+        this.server.use((req, res, next) => {
             res.header('Access-Control-Allow-Origin', '*');
             res.header(
               'Access-Control-Allow-Headers',

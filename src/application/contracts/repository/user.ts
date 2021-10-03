@@ -1,6 +1,6 @@
-import { UserModel, Credential } from "../../domain";
+import { UserInputModel, Credential } from "../../domain";
 
 export interface IUserRepository {
-    addNewUser(user: UserModel): Promise<boolean>;
+    addNewUser(user: UserInputModel): Promise<boolean>;
     authenticateUser(details: Credential): Promise<string>;
 }

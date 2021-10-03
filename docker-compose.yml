@@ -1,0 +1,38 @@
+version: '1'
+
+services:
+  app:
+    container_name: ${SERVICE_NAME}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    volumes:
+      - ./src:/home/node/app/src
+      - ./nodemon.json:/home/node/app/nodemon.json
+    ports:
+      - '4000:${DOCKER_SERVICE_PORT}'
+    command: npm run dev
+    links:
+      - mongodb
+    depends_on:
+      - mongodb
+    environment:
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_NAME=${DATABASE_NAME}
+    restart: always
+      
+
+  mongodb:
+    container_name: ${SERVICE_DB_NAME}
+    image: mongo
+    volumes:
+      - ./data:/data/db
+    ports:
+      - "27017:${DATABASE_PORT}"
+    environment:
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
