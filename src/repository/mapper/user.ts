@@ -1,7 +1,10 @@
 import { Mapper } from "../../application/base";
 import { UserInputModel, UserTypes } from "../../application/domain";
 import { UserBaseModel } from "../entities";
-import * as models from "repository/models";
+import models from '../models/';
+import * as model_types from '../models';
+
+const UserMongoDB = models.mongoDB.User;
 
 export class UserMapper extends Mapper<UserInputModel, UserBaseModel> {
     mapFrom(param: UserInputModel): UserBaseModel {
@@ -26,8 +29,8 @@ export class UserMapper extends Mapper<UserInputModel, UserBaseModel> {
     }
 }
 
-export class UserMapperMongoDB extends Mapper<models.UserMongoDB, UserBaseModel> {
-    mapFrom(param: models.UserMongoDB): UserBaseModel {
+export class UserMapperMongoDB extends Mapper<model_types.UserMongoDB, UserBaseModel> {
+    mapFrom(param: model_types.UserMongoDB): UserBaseModel {
         return {
             _id: null,
             email: param.email,
@@ -37,20 +40,20 @@ export class UserMapperMongoDB extends Mapper<models.UserMongoDB, UserBaseModel>
             lastName: param.lastName
         }
     }    
-    mapTo(param: UserBaseModel): models.UserMongoDB {
-        return {
+    mapTo(param: UserBaseModel): model_types.UserMongoDB {
+        return new UserMongoDB({
             password: param.password,
             email: param.email,
             userType: param.userType,
             firstName: param.firstName,
             lastName: param.lastName
-        }
+        })
     }
 }
 
 
-export class UserMapperOtherDB extends Mapper<models.UserOtherDB, UserBaseModel> {
-    mapFrom(param: models.UserOtherDB): UserBaseModel {
+export class UserMapperOtherDB extends Mapper<model_types.UserOtherDB, UserBaseModel> {
+    mapFrom(param: model_types.UserOtherDB): UserBaseModel {
         return {
             _id: null,
             email: param.email,
@@ -60,13 +63,13 @@ export class UserMapperOtherDB extends Mapper<models.UserOtherDB, UserBaseModel>
             lastName: param.lastName
         }
     }    
-    mapTo(param: UserBaseModel): models.UserOtherDB {
-        return {
+    mapTo(param: UserBaseModel): model_types.UserOtherDB {
+        return new UserMongoDB({
             password: param.password,
             email: param.email,
             userType: param.userType,
             firstName: param.firstName,
             lastName: param.lastName
-        }
+        })
     }
 }
