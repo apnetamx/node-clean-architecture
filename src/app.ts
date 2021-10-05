@@ -25,7 +25,6 @@ export default class App {
           "phoneNumber":    "3137938895",
           "city":           "Medellin",
         };
-        
         const userController= new UserController();
         const result_add=await userController.registerUser(data);
         console.log("Los id son: "+result_add);
