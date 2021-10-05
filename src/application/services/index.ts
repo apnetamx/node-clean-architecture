@@ -1,1 +1,1 @@
-export * from './auth'
+export * from './useCases/auth'

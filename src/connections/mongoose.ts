@@ -1,31 +1,19 @@
 import mongoose from 'mongoose';
-
-
-export type MongooseConnectionStatus = {
-    status: boolean;
-    mongoose: typeof mongoose|null|undefined;
-};
-
-
-export type MongooseConnectionInputParams = {
-    username: string;
-    password: string;
-    host: string,
-    port: string|number,
-    database: string
-};
+import { MongooseConnectionType, MongooseConnectionInputParams,MongooseConnectionOptions } from '../application/base/types';
 
 export class MongooseConnection {
     public name: string;
     public params: MongooseConnectionInputParams;
     public uri: string;
-    public options: mongoose.ConnectOptions;
+    public options: MongooseConnectionOptions;
+    public connection: MongooseConnectionType;
 
-    constructor(name: string,params: MongooseConnectionInputParams ,options: mongoose.ConnectOptions) {
+    constructor(name: string,params: MongooseConnectionInputParams ,options: MongooseConnectionOptions) {
       this.name=name;
       this.params=params;
       this.uri=this.generateMongooseURI(params);
       this.options=options;
+      this.connection=mongoose.connection;
     }
 
     private generateMongooseURI(params:MongooseConnectionInputParams):string {
@@ -34,40 +22,21 @@ export class MongooseConnection {
         return 'mongodb://'+auth+params.host+':'+params.port+'/'+params.database;
     }
 
-    public async connectMongoDB() : Promise<MongooseConnectionStatus> {
+    public async connectMongoose() : Promise<boolean> {
         try{
-            return {
-                status: true,
-                mongoose: await mongoose.connect(this.uri,this.options)
-            }
+            this.connection=(await mongoose.connect(this.uri,this.options)).connection;
+            return true;
         }catch(error){
-            return {
-                status: false,
-                mongoose: null
-            }
+            return false;
         } 
     }
 
-    public async disconnectMongoDB() : Promise<MongooseConnectionStatus> {
+    public async disconnectMongoose() : Promise<boolean> {
         try{
-            await mongoose.connection.close();
-            return {
-                status: false,
-                mongoose: null
-            }
+            await this.connection.close();
+            return false;
         }catch(error){
-            if(mongoose.connection){
-                return {
-                    status: true,
-                    mongoose: mongoose
-                }
-            } else{
-                return {
-                    status: false,
-                    mongoose: null
-                }
-            }
-            
+            return true;
         } 
     }
 

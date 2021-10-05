@@ -1,11 +1,11 @@
 import * as crypto from 'crypto';
-import { ITokenGenerator } from './application/contracts/token/token';
+import { ITokenGenerator } from './application/contracts/token';
 import { TokenDB } from './token-db';
 import { IToken } from './token-type';
 
 export class Token implements ITokenGenerator {
 
-    public generateToken(userId: string): string {
+    public generateToken(userId: string): string|null {
         const newToken: IToken = { userId, tokenValue: this.generateHash(20) };
         TokenDB.addToken(newToken);
         return newToken.tokenValue;

@@ -10,8 +10,7 @@ export class LoginRoute {
 
     public authenticateUser = async(req: Request, res: Response, next: NextFunction) => {
         try {
-            //const result = await new UserController().authenticateUser(req.body);
-            const result = "";
+            const result = await new UserController().authenticateUser(req.body);
             res.send(result);
         } catch(e) {
 
@@ -19,6 +18,6 @@ export class LoginRoute {
     };
 
     public configureEndPoints(baseUrl: string) {
-        this.server.post(`${baseUrl}login/?`, this.authenticateUser);
+        this.server.post(`${baseUrl}login/`, this.authenticateUser);
     }
 }
