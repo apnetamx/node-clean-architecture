@@ -1,22 +1,20 @@
 import bcrypt from 'bcryptjs';
 import {  User,UserBaseModel } from "../../../data/entities";
 import { IUserRepository } from "../../contracts";
-import RepositoryMongoDB from "../../../data/db/mongoDB";
-import RepositoryMySQL from "../../../data/db/mySQL";
+import {RepositoryMongoDB} from "../../../data/db/mongoDB";
+import {RepositoryMySQL} from "../../../data/db/mySQL";
 import { Credential, UserInputModel } from '../../../application/domain';
 import { ServiceResponse,IServiceResponse,GroupedService, IGroupedService } from '../../../application/base';
-
-export interface IUserService{
-    mongoDB: IUserRepository;
-    mySQL: IUserRepository;
-}
-
+import { MySQL2ConnectionType,MongooseConnectionType,ConnectionType } from '../../../application/base/types';
+import { Connection,DataBaseConnections } from '../../../connections';
 export class UserService{
-    public repos:IUserService  = {
-        mongoDB: new RepositoryMongoDB(),
-        mySQL: new RepositoryMySQL()
-    };
+    public connections:Array<Connection> = DataBaseConnections.availableConnections;
+    public repos: Array<MySQL2ConnectionType|MongooseConnectionType>=[];
 
+    constructor(){
+        this.connections.forEach(c=> (c.connection==null) ? null : (c.type==ConnectionType.Mongoose) ? new RepositoryMongoDB(c.connection) : (c.type==ConnectionType.MySQL2) ? new RepositoryMongoDB(c.connection) : null);
+    }
+   
     //Independiente de base de datos
     public async newUserInstance(data?:UserInputModel): Promise<UserBaseModel|null> {
         try{
@@ -55,7 +53,7 @@ export class UserService{
         try{
             if(user==null || user==undefined) return null;
             var promises: Array<Promise<string|null>> = [];
-            const entries=Object.entries(User.repos);
+            const entries=Object.entries(this.repos);
             
             entries.forEach(entry => promises.push((<IUserRepository>entry[1]).addNewUser(user)));
             const result_promises=await Promise.all(promises);
@@ -77,7 +75,7 @@ export class UserService{
         try{
             if(credential==null || credential==undefined) return null;
             var promises: Array<Promise<string|null>> = [];
-            const entries=Object.entries(User.repos);
+            const entries=Object.entries(this.repos);
             
             entries.forEach(entry => promises.push((<IUserRepository>entry[1]).authenticateUser(credential)));
             const result_promises=await Promise.all(promises);

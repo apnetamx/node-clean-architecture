@@ -1,46 +1,51 @@
-import mongoose from 'mongoose';
-import { MongooseConnectionType, MongooseConnectionInputParams,MongooseConnectionOptions } from '../application/base/types';
+import { Connection } from './index';
+import mongoose  from 'mongoose';
+import { MongooseConnectionInputParams,MongooseConnectionOptions,MongooseConnectionType,ConnectionStatus,ConnectionType} from '../application/base/types';
 
-export class MongooseConnection {
-    public name: string;
-    public params: MongooseConnectionInputParams;
-    public uri: string;
-    public options: MongooseConnectionOptions;
-    public connection: MongooseConnectionType;
+export class MongooseConnection extends Connection{
+    public input: MongooseConnectionInputParams;
+    public options: MongooseConnectionOptions; 
 
-    constructor(name: string,params: MongooseConnectionInputParams ,options: MongooseConnectionOptions) {
-      this.name=name;
-      this.params=params;
-      this.uri=this.generateMongooseURI(params);
-      this.options=options;
-      this.connection=mongoose.connection;
+    public uri:string;
+    public static defaultConnection: MongooseConnectionType|null=null;
+
+    constructor(name:string,input: MongooseConnectionInputParams,options: MongooseConnectionOptions) {
+        super(name,ConnectionType.Mongoose,input,options);
+        this.input=input;
+        this.options=options;
+        this.uri=this.generateMongooseURI();
     }
 
-    private generateMongooseURI(params:MongooseConnectionInputParams):string {
+    private generateMongooseURI():string {
         var auth;
-        (params.username) ? (params.password) ? auth=params.username+':'+params.password + '@' : auth='' : auth='';
-        return 'mongodb://'+auth+params.host+':'+params.port+'/'+params.database;
+        (this.input.username) ? (this.input.password) ? auth=this.input.username+':'+this.input.password + '@' : auth='' : auth='';
+        return 'mongodb://'+auth+this.input.host+':'+this.input.port+'/'+this.input.database;
     }
 
-    public async connectMongoose() : Promise<boolean> {
+
+    //Metodos se ejecutan a nivel objeto pero en verdad Mongoose se ejecuta a nivel static. Conexiones individuales
+    //Se debe desconectar antes de volver a conectar
+    public async connect() : Promise<null|MongooseConnection> {
         try{
-            this.connection=(await mongoose.connect(this.uri,this.options)).connection;
-            return true;
+            super.connection=(await mongoose.connect(this.uri,this.options)).connection;
+            super.status=ConnectionStatus.Up;
+            return this;
         }catch(error){
-            return false;
+            super.connection=null;
+            super.status=ConnectionStatus.Error;
+            return null;
         } 
     }
 
-    public async disconnectMongoose() : Promise<boolean> {
+    public async disconnect() : Promise<null|MongooseConnection> {
         try{
-            await this.connection.close();
-            return false;
+            await mongoose.connection.close();
+            super.connection=null;
+            super.status=ConnectionStatus.Down;
+            return this;
         }catch(error){
-            return true;
+            super.status=ConnectionStatus.Error;
+            return null;
         } 
-    }
-
-    public toString = () : string => {
-        return this.name;
     }
 }

@@ -1,6 +1,5 @@
 import App from './app';
-import Connections, { AppConnection } from './connections'
-
+import {Connection,DataBaseConnections} from './connections';
 
 const setMongoose = {
     input: {
@@ -29,16 +28,17 @@ const setMySQL2 = {
     }
 };
 
-export const connections=new Connections(setMongoose,setMySQL2);
+
 
 async function appStart():Promise<string> {
     const app= new App(3000);
-    const appConections= await connections.connectDataBases();
-    var successes=0;
+    const default_connections=new DataBaseConnections(setMongoose,setMySQL2);
+    const appConections= await default_connections.connectDataBases();
+    var successes:Array<AppConnection> = [];
     var errors:Array<AppConnection> = [];
-    appConections.forEach(c=> (c.status=='Up') ? successes++ : errors.push(c));
-
-    return (appConections.length>0 && successes==(appConections.length-1)) ?  app.start() : ("Error in connections:\n\n"+errors);
+    
+    appConections.forEach(c=> (c.status==ConnectionStatus.Up) ? successes.push(c) : errors.push(c));
+    return (appConections.length>0 && successes.length==appConections.length) ?  app.start() : ("Error in connections:\n\n"+errors);
 }
 console.log("Starting App\n\n");
 appStart().then(val => console.log(val));
